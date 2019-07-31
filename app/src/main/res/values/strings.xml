@@ -1,3 +1,18 @@
 <resources>
     <string name="app_name">闪照提取工具</string>
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="nav_header_title">闪照提取工具</string>
+    <string name="nav_header_subtitle">https://github.com/IzaiahSun/FPExtractor</string>
+    <string name="nav_header_desc">Navigation header</string>
+    <string name="action_settings">没什么好设置的</string>
+
+    <string name="menu_home">主页</string>
+    <string name="menu_gallery">历史图片</string>
+    <string name="menu_slideshow">检查更新</string>
+    <string name="menu_tools">关于</string>
+    <string name="tim">我在使用TIM</string>
+    <string name="about">这就是一个普普通通的闪照提取工具呀\n喜欢我的作品欢迎去我的Github页面下面点个Star，或者可以通过下面的二维码给我筹一杯奶茶钱</string>
+    <string name="noneedupdate">您已是最新版本</string>
+    <string name="needupdate">您的软件不是最新，可以访问https://github.com/IzaiahSun/FPExtractor/releases下载更新版本</string>
 </resources>
