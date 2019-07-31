@@ -492,7 +492,7 @@ public class MainActivity extends AppCompatActivity
         BufferedReader br = null;
         String result = null;// 返回结果字符串
         String httpurl="https://api.github.com/repos/IzaiahSun/FPExtractor/releases/latest";
-        int[] current_version={1,0,0};
+        int[] current_version={0,0,5};
         try {
             // 创建远程url连接对象
             URL url = new URL(httpurl);
@@ -547,9 +547,9 @@ public class MainActivity extends AppCompatActivity
         try {
             result = result.split("\"tag_name\":\"")[1].split("\"")[0];
             for (int v = 0; v < 3; v++) {
-                if (result.charAt(v) - '0' > current_version[v])
+                if (result.charAt(v*2) - '0' > current_version[v])
                     return true;
-                if (result.charAt(v) - '0' < current_version[v])
+                if (result.charAt(v*2) - '0' < current_version[v])
                     return false;
             }
             return false;
