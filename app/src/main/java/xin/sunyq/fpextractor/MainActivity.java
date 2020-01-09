@@ -57,7 +57,11 @@ public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, AdapterView.OnItemClickListener {
     public GridView gridView;
     public GridView gridView2;
-    public static List<Map<String,Object>> dataList;
+    public List<Map<String, Object>> dataList;
+    public Context context = this;
+    public SimpleAdapter simpleAdapter1;
+    public SimpleAdapter simpleAdapter2;
+    Handler handler2 = new Handler();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,8 +69,8 @@ public class MainActivity extends AppCompatActivity
         setContentView(R.layout.activity_main);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        gridView=findViewById(R.id.gridView);
-        gridView2=findViewById(R.id.gridView2);
+        gridView = findViewById(R.id.gridView);
+        gridView2 = findViewById(R.id.gridView2);
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
         NavigationView navigationView = findViewById(R.id.nav_view);
         getPermission();
@@ -75,28 +79,30 @@ public class MainActivity extends AppCompatActivity
         drawer.addDrawerListener(toggle);
         toggle.syncState();
         navigationView.setNavigationItemSelectedListener(this);
-        ImageButton imgbtn=findViewById(R.id.imageButton);
+        ImageButton imgbtn = findViewById(R.id.imageButton);
         imgbtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 showProgressBar();
                 getPermission();
                 try {
-                    loadImages();
-                }catch (Exception ignored){}
-                hideProgressBar();
+                    loadImage.start();
+                } catch (Exception ignored) {
+                }
+                //hideProgressBar();
             }
         });
-        ImageButton imgbtn2=findViewById(R.id.imageButton2);
+        ImageButton imgbtn2 = findViewById(R.id.imageButton2);
         imgbtn2.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 showProgressBar();
                 getPermission();
                 try {
-                    loadImages2();
-                }catch (Exception ignored){}
-                hideProgressBar();
+                    loadImage2.start();
+                } catch (Exception ignored) {
+                }
+                //hideProgressBar();
             }
         });
     }
@@ -128,34 +134,63 @@ public class MainActivity extends AppCompatActivity
         return true;
     }
 
-    public void loadImages2(){
-        String filepathHistory=Environment.getExternalStorageDirectory().getPath()+"/FPExtractor";
-        File fileHistory=new File(filepathHistory);
-        if (!fileHistory.exists()){
-            fileHistory.mkdirs();
-        }
-        dataList=new ArrayList<Map<String,Object>>();
-        File[] fileList = orderByDate(fileHistory.listFiles());
-        try {
-            Vector<String> modifiedTime = new Vector<>();
-            Vector<String> url = new Vector<>();
-            for (File file : fileList) {
-                if (file.getName().charAt(file.getName().length() - 3) == 'j' && file.getName().charAt(file.getName().length() - 2) == 'p' && file.getName().charAt(file.getName().length() - 1) == 'g') {
-                    SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-                    String result = formatter.format(file.lastModified());
-                    Map<String, Object> item = new HashMap<String, Object>();
-                    item.put("pic", Uri.parse(filepathHistory + "/" + file.getName()));
-                    item.put("time", result);
-                    dataList.add(item);
-                }
+    private Thread loadImage2 = new Thread() {
+        @Override
+        public void run() {
+            String filepathHistory = Environment.getExternalStorageDirectory().getPath() + "/FPExtractor";
+            File fileHistory = new File(filepathHistory);
+            if (!fileHistory.exists()) {
+                fileHistory.mkdirs();
             }
-        }catch (Exception e){
-            System.out.println(e);
+            dataList = new ArrayList<Map<String, Object>>();
+            File[] fileList = orderByDate(fileHistory.listFiles());
+            try {
+                for (File file : fileList) {
+                    if (file.getName().charAt(file.getName().length() - 3) == 'j' && file.getName().charAt(file.getName().length() - 2) == 'p' && file.getName().charAt(file.getName().length() - 1) == 'g') {
+                        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                        String result = formatter.format(file.lastModified());
+                        Map<String, Object> item = new HashMap<String, Object>();
+                        item.put("pic", Uri.parse(filepathHistory + "/" + file.getName()));
+                        item.put("time", result);
+                        dataList.add(item);
+                    }
+                }
+            } catch (Exception e) {
+                System.out.println(e);
+            }
+            simpleAdapter2 = new SimpleAdapter(context, dataList, R.layout.gridview_item_layout, new String[]{"pic", "time"}, new int[]{R.id.img, R.id.textView2});
+            handler2.post(updateUI2);
         }
-        SimpleAdapter simpleAdapter = new SimpleAdapter(this, dataList, R.layout.gridview_item_layout, new String[]{"pic", "time"}, new int[]{R.id.img, R.id.textView2});
-        gridView2.setAdapter(simpleAdapter);
-        gridView2.setOnItemClickListener(this);
-    }
+    };
+
+//    public void loadImages2() {
+//        String filepathHistory = Environment.getExternalStorageDirectory().getPath() + "/FPExtractor";
+//        File fileHistory = new File(filepathHistory);
+//        if (!fileHistory.exists()) {
+//            fileHistory.mkdirs();
+//        }
+//        dataList = new ArrayList<Map<String, Object>>();
+//        File[] fileList = orderByDate(fileHistory.listFiles());
+//        try {
+//            Vector<String> modifiedTime = new Vector<>();
+//            Vector<String> url = new Vector<>();
+//            for (File file : fileList) {
+//                if (file.getName().charAt(file.getName().length() - 3) == 'j' && file.getName().charAt(file.getName().length() - 2) == 'p' && file.getName().charAt(file.getName().length() - 1) == 'g') {
+//                    SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+//                    String result = formatter.format(file.lastModified());
+//                    Map<String, Object> item = new HashMap<String, Object>();
+//                    item.put("pic", Uri.parse(filepathHistory + "/" + file.getName()));
+//                    item.put("time", result);
+//                    dataList.add(item);
+//                }
+//            }
+//        } catch (Exception e) {
+//            System.out.println(e);
+//        }
+//        SimpleAdapter simpleAdapter = new SimpleAdapter(this, dataList, R.layout.gridview_item_layout, new String[]{"pic", "time"}, new int[]{R.id.img, R.id.textView2});
+//        gridView2.setAdapter(simpleAdapter);
+//        gridView2.setOnItemClickListener(this);
+//    }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -173,17 +208,19 @@ public class MainActivity extends AppCompatActivity
     }
 
     @SuppressLint("HandlerLeak")
-    private Handler handler = new Handler(){
+    private Handler handler = new Handler() {
         public void handleMessage(Message msg) {
-            boolean needUpdate= (boolean) msg.obj;
+            boolean needUpdate = (boolean) msg.obj;
             hideUpdateProgressBar();
-            TextView t=findViewById(R.id.textView3);
-            if(needUpdate){
+            TextView t = findViewById(R.id.textView3);
+            if (needUpdate) {
                 t.setText(R.string.needupdate);
-            }else{
+            } else {
                 t.setText(R.string.noneedupdate);
             }
-        };
+        }
+
+        ;
     };
 
     @SuppressWarnings("StatementWithEmptyBody")
@@ -199,14 +236,14 @@ public class MainActivity extends AppCompatActivity
             findViewById(R.id.update).setVisibility(View.INVISIBLE);
             findViewById(R.id.about).setVisibility(View.INVISIBLE);
             getPermission();
-            loadImages();
+            loadImage.run();
         } else if (id == R.id.nav_history) {
             findViewById(R.id.main).setVisibility(View.INVISIBLE);
             findViewById(R.id.history).setVisibility(View.VISIBLE);
             findViewById(R.id.update).setVisibility(View.INVISIBLE);
             findViewById(R.id.about).setVisibility(View.INVISIBLE);
             getPermission();
-            loadImages2();
+            loadImage2.run();
         } else if (id == R.id.nav_update) {
             showUpdateProgressBar();
             findViewById(R.id.main).setVisibility(View.INVISIBLE);
@@ -214,10 +251,10 @@ public class MainActivity extends AppCompatActivity
             findViewById(R.id.update).setVisibility(View.VISIBLE);
             findViewById(R.id.about).setVisibility(View.INVISIBLE);
 
-            new Thread(){
-                public void run(){
-                    Message msg=Message.obtain();
-                    msg.obj= checkForUpdate();
+            new Thread() {
+                public void run() {
+                    Message msg = Message.obtain();
+                    msg.obj = checkForUpdate();
                     handler.sendMessage(msg);
                 }
             }.start();
@@ -258,52 +295,115 @@ public class MainActivity extends AppCompatActivity
         findViewById(R.id.progressBar3).setVisibility(View.INVISIBLE);
     }
 
-
-    private void loadImages() {
-        String filepathQQ = Environment.getExternalStorageDirectory().getPath() + "/tencent/MobileQQ/diskcache";
-        String filepathTim = Environment.getExternalStorageDirectory().getPath() + "/tencent/Tim/diskcache";
-        String filepathHistory = Environment.getExternalStorageDirectory().getPath() + "/FPExtractor";
-        File fileHistory = new File(filepathHistory);
-        if (!fileHistory.exists()) {
-            fileHistory.mkdirs();
-        }
-        Switch sw = findViewById(R.id.switch1);
-        dataList = new ArrayList<Map<String, Object>>();
-        File dir;
-        String path;
-        if (!sw.isChecked()) {
-            dir = new File(filepathQQ);
-            path = filepathQQ;
-        } else {
-            dir = new File(filepathTim);
-            path = filepathTim;
-        }
-        if (!dir.exists()) {
-            Toast.makeText(this, "目录不存在", Toast.LENGTH_SHORT).show();
-            return;
-        }
-        File[] fileList = orderByDate(dir.listFiles());
-        Vector<String> modifiedTime = new Vector<>();
-        Vector<String> url = new Vector<>();
-        for (File file : fileList) {
-            if (file.getName().charAt(file.getName().length() - 2) == 'f' && file.getName().charAt(file.getName().length() - 1) == 'p') {
-                SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-                String result = formatter.format(file.lastModified());
-                Map<String, Object> item = new HashMap<String, Object>();
-                item.put("pic", Uri.parse(path + "/" + file.getName()));
-                item.put("time", result);
-                dataList.add(item);
+    private Thread loadImage = new Thread() {
+        @Override
+        public void run() {
+            String filepathQQ = Environment.getExternalStorageDirectory().getPath() + "/tencent/MobileQQ/chatpic/chatimg";
+            String filepathTim = Environment.getExternalStorageDirectory().getPath() + "/tencent/Tim/chatpic/chatimg";
+            String filepathHistory = Environment.getExternalStorageDirectory().getPath() + "/FPExtractor";
+            File fileHistory = new File(filepathHistory);
+            if (!fileHistory.exists()) {
+                fileHistory.mkdirs();
             }
+            Switch sw = findViewById(R.id.switch1);
+            dataList = new ArrayList<Map<String, Object>>();
+            File dir;
+            String path;
+            if (!sw.isChecked()) {
+                dir = new File(filepathQQ);
+                path = filepathQQ;
+            } else {
+                dir = new File(filepathTim);
+                path = filepathTim;
+            }
+            if (!dir.exists()) {
+                Toast.makeText(context, "目录不存在", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            File[] dirList = orderByDate(dir.listFiles());
+            for (File dirName : dirList) {
+                File endDir = new File(path + "/" + dirName.getName());
+                File[] fileList = endDir.listFiles();
+                for (File fp : fileList) {
+                    if (fp.getName().charAt(fp.getName().length() - 2) == 'f' && fp.getName().charAt(fp.getName().length() - 1) == 'p') {
+                        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                        String result = formatter.format(fp.lastModified());
+                        Map<String, Object> item = new HashMap<String, Object>();
+                        item.put("pic", Uri.parse(endDir + "/" + fp.getName()));
+                        item.put("time", result);
+                        item.put("ori-time", fp.lastModified());
+                        dataList.add(item);
+                    }
+                }
+            }
+            dataList.sort(new Comparator<Map<String, Object>>() {
+                @Override
+                public int compare(Map<String, Object> o1, Map<String, Object> o2) {
+                    try {
+                        if ((Long) o1.get("ori-time") > (Long) o2.get("ori-time")) {
+                            return -1;
+                        } else if ((Long) o1.get("ori-time") < (Long) o2.get("ori-time")) {
+                            return 1;
+                        }
+                        return 0;
+                    } catch (Exception e) {
+                        return 0;
+                    }
+                }
+            });
+            simpleAdapter1 = new SimpleAdapter(context, dataList, R.layout.gridview_item_layout, new String[]{"pic", "time"}, new int[]{R.id.img, R.id.textView2});
+            handler2.post(updateUI);
         }
-        SimpleAdapter simpleAdapter = new SimpleAdapter(this, dataList, R.layout.gridview_item_layout, new String[]{"pic", "time"}, new int[]{R.id.img, R.id.textView2});
-        gridView.setAdapter(simpleAdapter);
-        gridView.setOnItemClickListener(this);
-    }
+    };
+
+//    private void loadImages() {
+//        String filepathQQ = Environment.getExternalStorageDirectory().getPath() + "/tencent/MobileQQ/chatpic/chatimg";
+//        String filepathTim = Environment.getExternalStorageDirectory().getPath() + "/tencent/Tim/chatpic/chatimg";
+//        String filepathHistory = Environment.getExternalStorageDirectory().getPath() + "/FPExtractor";
+//        File fileHistory = new File(filepathHistory);
+//        if (!fileHistory.exists()) {
+//            fileHistory.mkdirs();
+//        }
+//        Switch sw = findViewById(R.id.switch1);
+//        dataList = new ArrayList<Map<String, Object>>();
+//        File dir;
+//        String path;
+//        if (!sw.isChecked()) {
+//            dir = new File(filepathQQ);
+//            path = filepathQQ;
+//        } else {
+//            dir = new File(filepathTim);
+//            path = filepathTim;
+//        }
+//        if (!dir.exists()) {
+//            Toast.makeText(this, "目录不存在", Toast.LENGTH_SHORT).show();
+//            return;
+//        }
+//        File[] dirList = dir.listFiles();
+//
+//        for (File dirName : dirList) {
+//            File endDir = new File(path + "/" + dirName.getName());
+//            File[] fileList = endDir.listFiles();
+//            for (File fp : fileList) {
+//                if (fp.getName().charAt(fp.getName().length() - 2) == 'f' && fp.getName().charAt(fp.getName().length() - 1) == 'p') {
+//                    SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+//                    String result = formatter.format(fp.lastModified());
+//                    Map<String, Object> item = new HashMap<String, Object>();
+//                    item.put("pic", Uri.parse(endDir + "/" + fp.getName()));
+//                    item.put("time", result);
+//                    dataList.add(item);
+//                }
+//            }
+//        }
+//        SimpleAdapter simpleAdapter = new SimpleAdapter(this, dataList, R.layout.gridview_item_layout, new String[]{"pic", "time"}, new int[]{R.id.img, R.id.textView2});
+//        gridView.setAdapter(simpleAdapter);
+//        gridView.setOnItemClickListener(this);
+//    }
 
 
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         String filename = ((Uri) ((HashMap) dataList.toArray()[position]).get("pic")).toString().split("/")[((Uri) ((HashMap) dataList.toArray()[position]).get("pic")).toString().split("/").length - 1];
-        if (findViewById(R.id.main).getVisibility()==View.VISIBLE) {
+        if (findViewById(R.id.main).getVisibility() == View.VISIBLE) {
             copyFile(((Uri) ((HashMap) dataList.toArray()[position]).get("pic")).toString(), Environment.getExternalStorageDirectory().getPath() + "/FPExtractor/" + filename + ".jpg");
         }
         openFile(this, new File(Environment.getExternalStorageDirectory().getPath() + "/FPExtractor/" + filename + ".jpg"));
@@ -393,29 +493,31 @@ public class MainActivity extends AppCompatActivity
 
             });
             return files;
-        }catch (Exception e){
+        } catch (Exception e) {
             return null;
         }
     }
+
     private String getMIMEType(File file) {
 
-        String type="*/*";
+        String type = "*/*";
         String fName = file.getName();
         //获取后缀名前的分隔符"."在fName中的位置。
         int dotIndex = fName.lastIndexOf(".");
-        if(dotIndex < 0){
+        if (dotIndex < 0) {
             return type;
         }
         /* 获取文件的后缀名*/
-        String end=fName.substring(dotIndex,fName.length()).toLowerCase();
-        if(end.equals(""))return type;
+        String end = fName.substring(dotIndex, fName.length()).toLowerCase();
+        if (end.equals("")) return type;
         //在MIME和文件类型的匹配表中找到对应的MIME类型。
-        for(int i=0;i<MIME_MapTable.length;i++){
-            if(end.equals(MIME_MapTable[i][0]))
+        for (int i = 0; i < MIME_MapTable.length; i++) {
+            if (end.equals(MIME_MapTable[i][0]))
                 type = MIME_MapTable[i][1];
         }
         return type;
     }
+
     // 可以自己随意添加
     private String[][] MIME_MapTable = {
             //{后缀名，MIME类型}
@@ -486,13 +588,14 @@ public class MainActivity extends AppCompatActivity
             {".zip", "application/x-zip-compressed"},
             {"", "*/*"}
     };
-    private boolean checkForUpdate(){
+
+    private boolean checkForUpdate() {
         HttpURLConnection connection = null;
         InputStream is = null;
         BufferedReader br = null;
         String result = null;// 返回结果字符串
-        String httpurl="https://api.github.com/repos/IzaiahSun/FPExtractor/releases/latest";
-        int[] current_version={0,2,0};
+        String httpurl = "https://api.github.com/repos/IzaiahSun/FPExtractor/releases/latest";
+        int[] current_version = {0, 3, 0};
         try {
             // 创建远程url连接对象
             URL url = new URL(httpurl);
@@ -547,15 +650,33 @@ public class MainActivity extends AppCompatActivity
         try {
             result = result.split("\"tag_name\":\"")[1].split("\"")[0];
             for (int v = 0; v < 3; v++) {
-                if (result.charAt(v*2) - '0' > current_version[v])
+                if (result.charAt(v * 2) - '0' > current_version[v])
                     return true;
-                if (result.charAt(v*2) - '0' < current_version[v])
+                if (result.charAt(v * 2) - '0' < current_version[v])
                     return false;
             }
             return false;
-        }catch (NullPointerException e){
+        } catch (NullPointerException e) {
             Toast.makeText(this, "超时", Toast.LENGTH_SHORT).show();
             return false;
         }
     }
+
+    Runnable updateUI = new Runnable() {
+        @Override
+        public void run() {
+            gridView.setAdapter(simpleAdapter1);
+            gridView.setOnItemClickListener((AdapterView.OnItemClickListener) context);
+            hideProgressBar();
+        }
+    };
+
+    Runnable updateUI2 = new Runnable() {
+        @Override
+        public void run() {
+            gridView2.setAdapter(simpleAdapter2);
+            gridView2.setOnItemClickListener((AdapterView.OnItemClickListener) context);
+            hideProgressBar();
+        }
+    };
 }
